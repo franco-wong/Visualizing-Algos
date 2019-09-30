@@ -25,14 +25,32 @@ def bubblesort(y_arr, colors):
         yield [y_arr, new_colors]
     yield [y_arr, colors]
 
-def insertionsort(y_arr):
+def insertionsort(y_arr, colors):
+    new_colors = copy.deepcopy(colors)
+    completed_colors = copy.deepcopy(colors)
+    completed_colors[0] = 'y'
+    yield [y_arr, new_colors]
     for i in range(1,len(y_arr)):
         for j in range(i, 0, -1):
+            new_colors[i+1:] = copy.deepcopy(colors[i+1:])
+            new_colors[:i+1] = copy.deepcopy(completed_colors[:i+1])
+            new_colors[j-1] = 'b'
+            new_colors[j] = 'b'
+            yield [y_arr, new_colors]
             if y_arr[j] < y_arr[j-1]:
                 swap(y_arr, j, j-1)
-                yield y_arr
             else:
                 break
+                
+            new_colors[j-1] = 'b'
+            new_colors[j] = 'b'
+            completed_colors[i] = 'y'
+            yield [y_arr, new_colors]
+        
+        completed_colors[i] = 'y'
+        new_colors[:i+1] = copy.deepcopy(completed_colors[:i+1])
+        yield [y_arr, new_colors]
+    yield [y_arr, colors]
 
 def selectionsort(y_arr):
     for i in range(len(y_arr)-1, 0, -1):
@@ -110,10 +128,10 @@ if __name__ == "__main__":
         generator = bubblesort(y_arr, colors)
         title = 'Bubble Sort'
     elif user_in == 2:
-        generator = selectionsort(y_arr)
+        generator = selectionsort(y_arr, colors)
         title = 'Selection Sort'
     elif user_in == 3:
-        generator = insertionsort(y_arr)
+        generator = insertionsort(y_arr, colors)
         title = 'Insertion Sort'
     elif user_in == 4:
         generator = mergesort(y_arr, 0, len(y_arr)-1)
@@ -123,7 +141,7 @@ if __name__ == "__main__":
         title = 'Quick Sort'
 
     fig=plt.figure()
-    bar = plt.bar(x_arr, y_arr, width=bar_width, edgecolor='white', align='center')
+    bar = plt.bar(x_arr, y_arr, width=bar_width, edgecolor='white', align='center', color='green')
     plt.axis('off')
     plt.title(title)
 
@@ -134,6 +152,6 @@ if __name__ == "__main__":
             bar.set_edgecolor('white')
         return
 
-    anim=animation.FuncAnimation(fig,func=animate,repeat=False,frames=generator,interval=200,fargs=(bar, ""))
+    anim=animation.FuncAnimation(fig,func=animate,repeat=False,frames=generator,interval=100,fargs=(bar, ""))
 
     plt.show()
