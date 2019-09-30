@@ -91,11 +91,10 @@ def selectionsort(y_arr, colors):
         yield [y_arr, new_colors]
     yield [y_arr, colors]
 
-def merge(y_arr, start, middle, end):
+def merge(y_arr, start, middle, end, colors):
     start2 = middle + 1
     if y_arr[middle] <= y_arr[middle+1]:
         yield y_arr
-        return
     while start < start2 and start2 <= end:
         if y_arr[start] < y_arr[start2]:
             start += 1
@@ -111,29 +110,41 @@ def merge(y_arr, start, middle, end):
             start += 1
             start2 += 1
     
-def mergesort(y_arr, start, end):
+def mergesort(y_arr, start, end, colors):
     middle = (end+start)//2
     if (end - start+1) > 1:
-        yield from mergesort(y_arr, start, middle)
-        yield from mergesort(y_arr, middle+1, end)
-        yield from merge(y_arr, start, middle, end)
+        yield from mergesort(y_arr, start, middle, colors)
+        yield from mergesort(y_arr, middle+1, end, colors)
+        yield from merge(y_arr, start, middle, end, colors)
         yield y_arr
 
-def quicksort(y_arr, start, end):
+def quicksort(y_arr, start, end, colors, completed_colors):
+    new_colors = copy.deepcopy(colors)
     pivot = y_arr[start]; storeposition = start
-
+    new_colors[start] = 'c'
+    yield [y_arr, new_colors]
     for i in range(start+1, end+1):
+        new_colors[i] = 'b'
+        yield [y_arr, new_colors]
         if y_arr[i] < y_arr[start]:
+            new_colors[storeposition+1] = 'm'
             swap(y_arr, i, storeposition+1)
             storeposition += 1
-            yield y_arr
+            yield [y_arr, new_colors]
+        new_colors[storeposition+1:end+1] = copy.deepcopy(completed_colors[storeposition+1:end+1])
+        yield [y_arr, new_colors]
     swap(y_arr, start, storeposition)
-    yield y_arr
+    completed_colors[storeposition] = 'y'
+    new_colors[storeposition] = 'y'
+    new_colors[start:storeposition+1] = copy.deepcopy(completed_colors[start:storeposition+1])
+    yield [y_arr, new_colors]
 
     if start != storeposition:
-        yield from quicksort(y_arr, start, storeposition-1)
+        yield from quicksort(y_arr, start, storeposition-1, completed_colors, completed_colors)
     if end != storeposition:
-        yield from quicksort(y_arr, storeposition+1, end)
+        yield from quicksort(y_arr, storeposition+1, end, completed_colors, completed_colors)
+    if len(completed_colors)-1 == end-start:
+        yield [y_arr, ['g' for _ in range(len(colors))]]
     
 if __name__ == "__main__":
     user_in = int(input("Enter the sorting algorithm to use:\n(1) Bubble Sort\n(2) Selection Sort\n(3) Insertion Sort\n(4) Merge Sort\n(5) Quick Sort\n"))
@@ -163,10 +174,10 @@ if __name__ == "__main__":
         generator = insertionsort(y_arr, colors)
         title = 'Insertion Sort'
     elif user_in == 4:
-        generator = mergesort(y_arr, 0, len(y_arr)-1, colors)
+        generator = mergesort(y_arr, 0, len(y_arr)-1, colors, colors)
         title = 'Merge Sort'
     elif user_in == 5:
-        generator = quicksort(y_arr, 0, len(y_arr)-1, colors)
+        generator = quicksort(y_arr, 0, len(y_arr)-1, colors, colors)
         title = 'Quick Sort'
 
     fig=plt.figure()
@@ -181,6 +192,6 @@ if __name__ == "__main__":
             bar.set_edgecolor('white')
         return
 
-    anim=animation.FuncAnimation(fig,func=animate,repeat=False,frames=generator,interval=100,fargs=(bar, ""))
+    anim=animation.FuncAnimation(fig,func=animate,repeat=False,frames=generator,interval=1,fargs=(bar, ""))
 
     plt.show()
