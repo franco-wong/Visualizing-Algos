@@ -3,6 +3,11 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 import copy
 
+# visualizations:
+# 'blue' is to show comparisons between two numbers/elements
+# 'yellow' shows that the numbers/elements are in the correct ordering
+# 'cyan' shows the highest number in the current partition for selection sort
+
 def swap(y_arr, a, b):
     temp = y_arr[a]
     y_arr[a] = y_arr[b]
@@ -52,15 +57,39 @@ def insertionsort(y_arr, colors):
         yield [y_arr, new_colors]
     yield [y_arr, colors]
 
-def selectionsort(y_arr):
+def selectionsort(y_arr, colors):
+    new_colors = copy.deepcopy(colors)
     for i in range(len(y_arr)-1, 0, -1):
+        new_colors[:i] = copy.deepcopy(colors[:i])
+        yield [y_arr, new_colors]
         highest = 0
+        # shows the highest value being tracked by the color 'cyan'
+        new_colors[highest] = 'c'
+        yield [y_arr, new_colors]
         for j in range(0, i):
+            new_colors[j] = 'b'
+            yield [y_arr, new_colors]
             if y_arr[highest] < y_arr[j]:
                 highest = j
+            
+            new_colors[:i] = copy.deepcopy(colors[:i])
+            new_colors[highest] = 'c'
+            yield [y_arr, new_colors]
+        # to move the highest value in the partition
+        # also demonstrates the swap
+        new_colors[highest] = 'b'
+        new_colors[i] = 'b'
+        yield [y_arr, new_colors]
         if y_arr[highest] > y_arr[i]:
             swap(y_arr, highest, i)
-            yield y_arr
+        new_colors[highest] = 'b'
+        new_colors[i] = 'b'
+        yield [y_arr, new_colors]
+        # added the highest to the highest partition
+        new_colors[:i] = copy.deepcopy(colors[:i])
+        new_colors[i] = 'y'
+        yield [y_arr, new_colors]
+    yield [y_arr, colors]
 
 def merge(y_arr, start, middle, end):
     start2 = middle + 1
@@ -134,10 +163,10 @@ if __name__ == "__main__":
         generator = insertionsort(y_arr, colors)
         title = 'Insertion Sort'
     elif user_in == 4:
-        generator = mergesort(y_arr, 0, len(y_arr)-1)
+        generator = mergesort(y_arr, 0, len(y_arr)-1, colors)
         title = 'Merge Sort'
     elif user_in == 5:
-        generator = quicksort(y_arr, 0, len(y_arr)-1)
+        generator = quicksort(y_arr, 0, len(y_arr)-1, colors)
         title = 'Quick Sort'
 
     fig=plt.figure()
