@@ -1,18 +1,29 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
+import copy
 
 def swap(y_arr, a, b):
     temp = y_arr[a]
     y_arr[a] = y_arr[b]
     y_arr[b] = temp
 
-def bubblesort(y_arr):
+def bubblesort(y_arr, colors):
+    new_colors = copy.deepcopy(colors)
     for i in range(len(y_arr)-1, -1, -1):
         for j in range(0, i):
+            new_colors[:i+1] = copy.deepcopy(colors[:i+1])
             if y_arr[j] > y_arr[j+1]:
                 swap(y_arr, j, j+1)
-                yield y_arr
+            new_colors[j] = 'b'
+            new_colors[j+1] = 'b'
+            yield [y_arr, new_colors]
+        if i != 0:
+            new_colors[i-1] = 'b'
+            new_colors[i] = 'b'
+        new_colors[i] = 'y'
+        yield [y_arr, new_colors]
+    yield [y_arr, colors]
 
 def insertionsort(y_arr):
     for i in range(1,len(y_arr)):
@@ -93,9 +104,10 @@ if __name__ == "__main__":
     y_arr = np.array([np.random.randint(y_min, y_max) for _ in range(x_length)])
     # x_ arr is a list from 0 - x_length
     x_arr = np.array([i for i in range(x_length)])
+    colors = np.array(['g' for _ in range(x_length)])
 
     if user_in == 1:
-        generator = bubblesort(y_arr)
+        generator = bubblesort(y_arr, colors)
         title = 'Bubble Sort'
     elif user_in == 2:
         generator = selectionsort(y_arr)
@@ -115,11 +127,13 @@ if __name__ == "__main__":
     plt.axis('off')
     plt.title(title)
 
-    def animate(heights, bar, color):
-        for bar, height in zip(bar, heights):
+    def animate(heights, bar, s):
+        for bar, height,color in zip(bar, heights[0], heights[1]):
             bar.set_height(height)
+            bar.set_color(str(color))
+            bar.set_edgecolor('white')
         return
 
-    anim=animation.FuncAnimation(fig,func=animate,repeat=False,frames=generator,interval=1,fargs=(bar, color))
+    anim=animation.FuncAnimation(fig,func=animate,repeat=False,frames=generator,interval=200,fargs=(bar, ""))
 
     plt.show()
